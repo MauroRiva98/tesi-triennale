@@ -330,6 +330,88 @@ delete {
 	cursor: pointer;
 }
 
+#div_show {
+	position: absolute;
+	left: 0px;
+	width: 157px;
+	height: 46px;
+	top: 677px;
+	background-color: #000066;
+	margin-top: 0px;
+	cursor: pointer;
+}
+
+#label_div_show {
+	position: relative;
+    font-size: 25px;
+    color: white;
+    display: block;
+    text-align: center;
+	padding-top: 3px;
+	cursor: pointer;
+}
+
+#div_download {
+	position: absolute;
+    left: 0px;
+    width: 50%;
+    height: 40%;
+    top: 750px;
+    margin-top: 0px;
+}
+
+#file_name {
+	width: 50%;
+}
+
+#div_download_button {
+	position: absolute;
+	width: 157px;
+    height: 46px;
+	background-color: #000066;
+	cursor: pointer;
+	margin-top: 10px;
+}
+
+#label_div_download_button {
+	position: relative;
+    font-size: 25px;
+    color: white;
+    display: block;
+    text-align: center;
+	padding-top: 3px;
+	cursor: pointer;
+}
+
+.alert {
+    position: absolute;
+    left: calc(50% - 100px);
+    top: 3%;
+    width: 200px;
+    z-index: 10;
+    padding: 20px;
+    background-color: #e84444;
+    font-family: 'Oswald', sans-serif;
+    font-size: 100%;
+    text-align: center;
+    color: black;          
+}
+
+.closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+	float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.closebtn:hover {
+     color: black;
+}
+
 @media screen and (max-width: 1000px) {
   #div_left_menu {
     width: 25%;
@@ -372,6 +454,27 @@ delete {
 		top: 620px;
 	}
 	#label_add_rule {
+		font-size: 16px;
+	}
+	#div_show {
+		width: 81px;
+		height: 27px;
+		top: 620px;
+	}
+	#label_div_show {
+		font-size: 16px;
+	}
+	#div_download {
+		top: 660px;
+		width: 70%;
+		height: 25%;
+	}
+	#div_download_button {
+		width: 81px;
+		height: 27px;
+		margin-top: 5px;
+	}
+	#label_div_download_button {
 		font-size: 16px;
 	}
 }

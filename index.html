@@ -84,7 +84,7 @@
 							</div>
 							<br><br><br>
 							<div id="div_rule_assegnee_1" name="div_rule_assegnee" class="div_rule_assegnee">
-								<label class="unselectable" for="assegnee">Assegnee:</label><br>
+								<label class="unselectable" for="assegnee">Assignee:</label><br>
 								<input type="text" id="assegnee_1" name="assegnee" class="input_create add_prefix">
 							</div>
 							<label class="unselectable" for="target">Target:</label><br>
@@ -118,8 +118,19 @@
 						</div>
 					  </div>
 					  <br>
-					  <div id="div_add_rule" onclick="add_new_rule()">
+					  <div id="div_add_rule" class="scroll_bottom" onclick="add_new_rule()">
 						<label class="unselectable" id="label_add_rule">Add new rule</label>
+					  </div>
+					  <div id="div_show" name="div_show" class="scroll_bottom" onclick="show_policy()">
+						<label class="unselectable" id="label_div_show">Show policy</label>
+					  </div>
+					  <div id="div_download">
+						<label class="unselectable">Nome file:</label><br>
+						<input type="text" id="file_name" name="file_name">
+						<label class="unselectable">.jsonld</label>
+						<div id="div_download_button" onclick="start_download()">
+							<label class="unselectable" id="label_div_download_button">Download</label>
+						</div>
 					  </div>
 					</form>
 				</div>
