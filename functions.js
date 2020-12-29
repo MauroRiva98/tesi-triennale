@@ -1,7 +1,7 @@
 function menu_click(option){
-	$("#div_main").empty();
 	switch(option) {
-		case 1:	
+		case 1: //Create new file
+			$("#div_main").empty();
 			$("#div_main").append("<div id=\"div_center\">\
 				<div id=\"div_form\">\
 					<titolo class=\"unselectable\">COMPILE THE FORM BELOW</titolo>\
@@ -115,12 +115,28 @@ function menu_click(option){
 					  </div>\
 					</form>\
 				</div>");
+			$("#div_main").append("<div id=\"div_right\">\
+				<div id=\"div_view_main\">\
+					<div id=\"div_top_right\">\
+						<titolo class=\"unselectable\">VIEW</titolo>\
+						<div id=\"div_select_view_mode\">\
+							<label class=\"unselectable\" id=\"label_select_view_mode\">Select view mode:</label>\
+							<select id=\"view_mode\">\
+								<option value=\"text\">Text</option>\
+								<option value=\"grafic\">Grafic</option>\
+							</select>\
+						</div>\
+					</div>"
+					+"<div id=\"div_view_scroll\">"				
+					+"</div>\
+				</div>\
+			</div>");
 		break;
-		case 2:
-			// code block
+		case 2: //Modify
+			open_upload_div("modify");
 		break;
-		case 3:
-			// code block
+		case 3: //View
+			open_upload_div("view");
 		break;
 	}
 }
@@ -329,21 +345,23 @@ function check_form(){
 
 function get_policy(){
 	var rules = [];
-	for (var i = 1; i <= $('div[name ="div_rule"]').length; i++) {
-		var target = [];
-		for(var j = 1; j <= $("div[name =\"div_rule_target_"+i+"\"]").length; j++){
-			var t = $("#target_"+i+"_"+j).val();
-			target.push(t);
+	for (var i = 1; i <= rule_number; i++) {
+		if($("#div_rule_"+i).html() != ""){
+			var target = [];
+			for(var j = 1; j <= $("div[name =\"div_rule_target_"+i+"\"]").length; j++){
+				var t = $("#target_"+i+"_"+j).val();
+				target.push(t);
+			}
+			var r = {
+				"type": $("#rule_type_"+i).val(),
+				"uid": $("#uid_"+i).val(),
+				"assignee": $("#assegnee_"+i).val(),
+				"target": target,
+				"action": $("#action_"+i).val(),
+				"purpose": $("#purpose_"+i).val()
+			}
+			rules.push(r);
 		}
-		var r = {
-			"type": $("#rule_type_"+i).val(),
-			"uid": $("#uid_"+i).val(),
-			"assignee": $("#assegnee_"+i).val(),
-			"target": target,
-			"action": $("#action_"+i).val(),
-			"purpose": $("#purpose_"+i).val()
-		}
-		rules.push(r);
 	}
 	var context = [];
 	for(var k = 1; k <= $("div[name =\"div_context\"]").length; k++){
@@ -433,3 +451,83 @@ function start_download(){
 		}
 	}
 }
+
+function show_policy(){
+	if(!check_form())
+			show_alert("ERROR: Empty text input!");
+	else{
+		if($("#view_mode").val() == "text"){
+			var policy = get_policy();
+			var myJSON_raw = JSON.stringify(policy, null, 2);
+			var myJSON = myJSON_raw.replace(/\n/g, "<br>");
+			$("#div_view_scroll").html("<a>"+myJSON+"</a>");
+		}
+		else{			
+		}
+	}
+}
+function open_upload_div(type){
+	$("#div_form").empty();
+	$("#div_view_main").empty();
+	$("#div_form").html("<div id = \"div_upload\" class=\"unselectable\">\
+		<label for=\"upload\">Upload a file:</label><br><br>\
+		<input type=\"file\" id=\"file_selector\">\
+		<div id=\"div_box\">\
+		</div>\
+	</div>");
+	$("#div_box").hide();
+	$("#div_box").html(type);
+	const fileSelector = document.getElementById("file_selector");
+	fileSelector.addEventListener('change', (event) => {
+		const fileList = event.target.files;
+		read_file(fileList[0]);		
+	  });
+}
+
+function read_file(file){
+	const reader = new FileReader();
+	reader.addEventListener('load', (event) => {
+		const result = event.target.result;
+		// Do something with result
+		try{
+			var file_json = JSON.parse(result);
+			if($("#div_box").html() == "modify"){
+			}
+			else if($("#div_box").html() == "view"){
+				open_view_mode(file_json);
+			}
+		}
+		catch(err) {
+			show_alert("ERROR: " + err);
+		}
+	});
+	reader.readAsText(file);
+}
+
+function open_view_mode(file_json){
+	//Text
+	$("#div_form").html("<div id=\"div_top_left\">\
+						<titolo class=\"unselectable\">TEXT</titolo>\
+					</div>"
+					+"<div id=\"div_view_scroll_left\" style=\"height: 94%;\">"				
+					+"</div>");
+	var myJSON_raw = JSON.stringify(file_json, null, 2);
+	var myJSON = myJSON_raw.replace(/\n/g, "<br>");
+	$("#div_view_scroll_left").html("<a>"+myJSON+"</a>");
+	
+	//Grafic
+	$("#div_view_main").html("<div id=\"div_top_right\">\
+						<titolo class=\"unselectable\">GRAFIC</titolo>\
+					</div>"
+					+"<div id=\"div_view_scroll\">"				
+					+"</div>");
+	open_grafic_view(file_json);
+}
+
+function open_grafic_view(policy){
+	$("#div_view_scroll").html("<div id = \"div_grafic_base\"></div>");
+	$("#div_grafic_base").html("<div id = \"div_base_left\"></div>");
+	$("#div_grafic_base").append("<div id = \"div_base_right\"></div>");
+	$("#div_base_left").html("<label class=\"unselectable\" for=\"context\">Context:</label>");
+	//for (var i = 0; i<)
+}	
