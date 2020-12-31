@@ -1,8 +1,4 @@
-function menu_click(option){
-	switch(option) {
-		case 1: //Create new file
-			$("#div_main").empty();
-			$("#div_main").append("<div id=\"div_center\">\
+var string_main_page = "<div id=\"div_center\">\
 				<div id=\"div_form\">\
 					<titolo class=\"unselectable\">COMPILE THE FORM BELOW</titolo>\
 					<form id=\"form_create\">\
@@ -114,14 +110,14 @@ function menu_click(option){
 						</div>\
 					  </div>\
 					</form>\
-				</div>");
-			$("#div_main").append("<div id=\"div_right\">\
+				</div>";
+var string_main_page_2 = "<div id=\"div_right\">\
 				<div id=\"div_view_main\">\
 					<div id=\"div_top_right\">\
 						<titolo class=\"unselectable\">VIEW</titolo>\
 						<div id=\"div_select_view_mode\">\
 							<label class=\"unselectable\" id=\"label_select_view_mode\">Select view mode:</label>\
-							<select id=\"view_mode\">\
+							<select id=\"view_mode\" onchange=\"change_view_mode(this.value)\">\
 								<option value=\"text\">Text</option>\
 								<option value=\"grafic\">Grafic</option>\
 							</select>\
@@ -130,9 +126,19 @@ function menu_click(option){
 					+"<div id=\"div_view_scroll\">"				
 					+"</div>\
 				</div>\
-			</div>");
+			</div>";
+			
+function menu_click(option){
+	switch(option) {
+		case 1: //Create new file
+			$("#div_main").empty();
+			$("#div_main").append(string_main_page);
+			$("#div_main").append(string_main_page_2);
+			policy_showed[0] = false;
+			rule_number = 1;
 		break;
 		case 2: //Modify
+			rule_number = 1;
 			open_upload_div("modify");
 		break;
 		case 3: //View
@@ -452,17 +458,21 @@ function start_download(){
 	}
 }
 
+var policy_showed = [false, undefined];
 function show_policy(){
 	if(!check_form())
 			show_alert("ERROR: Empty text input!");
 	else{
+		var policy = get_policy();
+		policy_showed = [true, policy];
 		if($("#view_mode").val() == "text"){
-			var policy = get_policy();
 			var myJSON_raw = JSON.stringify(policy, null, 2);
 			var myJSON = myJSON_raw.replace(/\n/g, "<br>");
 			$("#div_view_scroll").html("<a>"+myJSON+"</a>");
 		}
-		else{			
+		else{
+			policy = [policy, ""];
+			open_grafic_view(policy);
 		}
 	}
 }
@@ -492,6 +502,7 @@ function read_file(file){
 		try{
 			var file_json = JSON.parse(result);
 			if($("#div_box").html() == "modify"){
+				open_modify_mode(file_json);
 			}
 			else if($("#div_box").html() == "view"){
 				open_view_mode(file_json);
@@ -524,10 +535,199 @@ function open_view_mode(file_json){
 	open_grafic_view(file_json);
 }
 
+var p_global;
 function open_grafic_view(policy){
+	p_global = policy;
 	$("#div_view_scroll").html("<div id = \"div_grafic_base\"></div>");
 	$("#div_grafic_base").html("<div id = \"div_base_left\"></div>");
 	$("#div_grafic_base").append("<div id = \"div_base_right\"></div>");
-	$("#div_base_left").html("<label class=\"unselectable\" for=\"context\">Context:</label>");
-	//for (var i = 0; i<)
-}	
+	$("#div_base_left").html("<div id=\"div_label_base_context\" name=\"div_label_base\" class=\"div_label_base\" style=\"margin-top: 10px\"><label class=\"unselectable\" for=\"context\">Context:</label></div>");
+	$("#div_base_right").html("<div id=\"div_base_context\"></div>");
+	for (var i = 0; i < policy[0]["@context"].length; i++) {
+		if(policy[0]["@context"][i].length == 1){
+			$("#div_base_context").append("<label class=\"label_grafic\">" + policy[0]["@context"] + "</label><br>");
+			$("#div_label_base_context").append("<br>");
+			break;
+		}
+		$("#div_base_context").append("<label class=\"label_grafic\">" + policy[0]["@context"][i] + "</label><br>");
+		$("#div_label_base_context").append("<br>");
+	}
+	$("#div_base_left").append("<div id=\"div_label_base_uid\" name=\"div_label_base\" class=\"div_label_base\" style=\"margin-top: 10px\"><label class=\"unselectable\" for=\"uid\">UID:</label></div><br>");
+	var pos = $("#div_label_base_uid").position();
+	$("#div_base_right").append("<div id=\"div_base_uid\" style=\"top: "+ pos.top +"px\"><label class=\"label_grafic\">"+ policy[0]["uid"] +"</label></div>");
+	$("#div_base_left").append("<div id=\"div_label_base_type\" name=\"div_label_base\" class=\"div_label_base\" style=\"margin-top: -5px\"><label class=\"unselectable\" for=\"type\">Type:</label></div>");
+	pos = $("#div_label_base_type").position();
+	$("#div_base_right").append("<div id=\"div_base_type\" style=\"top: "+ pos.top +"px; margin-top: -5px\"><label class=\"label_grafic\">"+ policy[0]["@type"] +"</label></div>");
+	
+	//Prohibition
+	var prohibition_len = 0;
+	$("#div_view_scroll").append("<div id=\"div_grafic_prohibition\" onclick=\"open_prohibition()\"></div>");
+	if(policy[0]["prohibition"] != undefined)
+		prohibition_len = policy[0]["prohibition"].length;
+	else
+		$("#div_grafic_prohibition").css("cursor", "default");
+	$("#div_grafic_prohibition").html("<label style=\"position: absolute; left: 6%; top: 30%\" class=\"unselectable\" for=\"prohibition\">Prohibition</label>");
+	$("#div_grafic_prohibition").append("<label style=\"position: absolute; right: 5%; top: 30%; color: black\" class=\"unselectable\" for=\"prohibition\">"+ prohibition_len +" Rules</label>");
+	$("#div_view_scroll").append("<div id=\"div_prohibition_list\"></div>");
+	$("#div_prohibition_list").hide();
+	
+	//Obligation
+	var obligation_len = 0;
+	$("#div_view_scroll").append("<div id=\"div_grafic_obligation\" onclick=\"open_obligation()\"></div>");
+	if(policy[0]["obligation"] != undefined)
+		obligation_len = policy[0]["obligation"].length;
+	else
+		$("#div_grafic_obligation").css("cursor", "default");
+	$("#div_grafic_obligation").html("<label style=\"position: absolute; left: 6%; top: 30%\" class=\"unselectable\" for=\"obligation\">Obligation</label>");
+	$("#div_grafic_obligation").append("<label style=\"position: absolute; right: 5%; top: 30%; color: black\" class=\"unselectable\" for=\"obligation\">"+ obligation_len +" Rules</label>");
+	$("#div_view_scroll").append("<div id=\"div_obligation_list\"></div>");
+	$("#div_obligation_list").hide();
+	
+	//Permission
+	var permission_len = 0;
+	$("#div_view_scroll").append("<div id=\"div_grafic_permission\" onclick=\"open_permission()\"></div>");
+	if(policy[0]["permission"] != undefined)
+		permission_len = policy[0]["permission"].length;
+	else
+		$("#div_grafic_permission").css("cursor", "default");
+	$("#div_grafic_permission").html("<label style=\"position: absolute; left: 6%; top: 30%\" class=\"unselectable\" for=\"permission\">Permission</label>");
+	$("#div_grafic_permission").append("<label style=\"position: absolute; right: 5%; top: 30%; color: black\" class=\"unselectable\" for=\"permission\">"+ permission_len +" Rules</label>");
+	$("#div_view_scroll").append("<div id=\"div_permission_list\"></div>");
+	$("#div_permission_list").hide();
+}
+
+function open_prohibition(){
+	if(p_global[0]["prohibition"] != undefined){
+		if($("#div_prohibition_list").is(":hidden")){
+			for (var i = 0; i < p_global[0]["prohibition"].length; i++) {
+				$("#div_prohibition_list").append("<div id=\"div_prohibition_"+ (i+1) +"\" class=\"div_prohibition\"></div>");
+				$("#div_prohibition_" + (i+1)).html("<label class=\"unselectable rules_list\" style=\"position: absolute\">UID:</label>");
+				$("#div_prohibition_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"position: absolute; padding-left: 77px\">"+ p_global[0]["prohibition"][i]["uid"] +"</label><br><br>");
+				$("#div_prohibition_" + (i+1)).append("<label class=\"unselectable rules_list\">Assignee:</label>");
+				$("#div_prohibition_" + (i+1)).append("<label class=\"label_grafic_rules\">"+ p_global[0]["prohibition"][i]["assignee"] +"</label><br>");
+				$("#div_prohibition_" + (i+1)).append("<label class=\"unselectable rules_list\">Target:</label>");
+				for (var j = 0; j < p_global[0]["prohibition"][i]["target"].length; j++) {
+					var offset = 0;
+					if(j > 0)
+						offset = 60;
+					if(p_global[0]["prohibition"][i]["target"][j].length == 1){
+						$("#div_prohibition_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: "+ (36 + offset) +"px\">"+ p_global[0]["prohibition"][i]["target"] +"</label><br>");
+						break;
+					}
+					$("#div_prohibition_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: "+ (36 + offset) +"px\">"+ p_global[0]["prohibition"][i]["target"][j] +"</label><br>");
+				}
+				$("#div_prohibition_" + (i+1)).append("<label class=\"unselectable rules_list\">Action:</label>");
+				$("#div_prohibition_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: 35px\">"+ p_global[0]["prohibition"][i]["action"] +"</label><br>");
+				$("#div_prohibition_" + (i+1)).append("<label class=\"unselectable rules_list\">Purpose:</label>");
+				$("#div_prohibition_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: 24px\">"+ p_global[0]["prohibition"][i]["purpose"] +"</label><br>");
+			}
+			$("#div_prohibition_list").show();
+		}
+		else{
+			$("#div_prohibition_list").empty();
+			$("#div_prohibition_list").hide();
+		}
+	}
+}
+
+function open_obligation(){
+	if(p_global[0]["obligation"] != undefined){
+		if($("#div_obligation_list").is(":hidden")){
+			for (var i = 0; i < p_global[0]["obligation"].length; i++) {
+				$("#div_obligation_list").append("<div id=\"div_obligation_"+ (i+1) +"\" class=\"div_obligation\"></div>");
+				$("#div_obligation_" + (i+1)).html("<label class=\"unselectable rules_list\" style=\"position: absolute\">UID:</label>");
+				$("#div_obligation_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"position: absolute; padding-left: 77px\">"+ p_global[0]["obligation"][i]["uid"] +"</label><br><br>");
+				$("#div_obligation_" + (i+1)).append("<label class=\"unselectable rules_list\">Assignee:</label>");
+				$("#div_obligation_" + (i+1)).append("<label class=\"label_grafic_rules\">"+ p_global[0]["obligation"][i]["assignee"] +"</label><br>");
+				$("#div_obligation_" + (i+1)).append("<label class=\"unselectable rules_list\">Target:</label>");
+				for (var j = 0; j < p_global[0]["obligation"][i]["target"].length; j++) {
+					var offset = 0;
+					if(j > 0)
+						offset = 60;
+					if(p_global[0]["obligation"][i]["target"][j].length == 1){
+						$("#div_obligation_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: "+ (36 + offset) +"px\">"+ p_global[0]["obligation"][i]["target"] +"</label><br>");
+						break;
+					}
+					$("#div_obligation_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: "+ (36 + offset) +"px\">"+ p_global[0]["obligation"][i]["target"][j] +"</label><br>");
+				}
+				$("#div_obligation_" + (i+1)).append("<label class=\"unselectable rules_list\">Action:</label>");
+				$("#div_obligation_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: 35px\">"+ p_global[0]["obligation"][i]["action"] +"</label><br>");
+				$("#div_obligation_" + (i+1)).append("<label class=\"unselectable rules_list\">Purpose:</label>");
+				$("#div_obligation_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: 24px\">"+ p_global[0]["obligation"][i]["purpose"] +"</label><br>");
+			}
+			$("#div_obligation_list").show();
+		}
+		else{
+			$("#div_obligation_list").empty();
+			$("#div_obligation_list").hide();
+		}
+	}
+}
+
+function open_permission(){
+	if(p_global[0]["permission"] != undefined){
+		if($("#div_permission_list").is(":hidden")){
+			for (var i = 0; i < p_global[0]["permission"].length; i++) {
+				$("#div_permission_list").append("<div id=\"div_permission_"+ (i+1) +"\" class=\"div_permission\"></div>");
+				$("#div_permission_" + (i+1)).html("<label class=\"unselectable rules_list\" style=\"position: absolute\">UID:</label>");
+				$("#div_permission_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"position: absolute; padding-left: 77px\">"+ p_global[0]["permission"][i]["uid"] +"</label><br><br>");
+				$("#div_permission_" + (i+1)).append("<label class=\"unselectable rules_list\">Assignee:</label>");
+				$("#div_permission_" + (i+1)).append("<label class=\"label_grafic_rules\">"+ p_global[0]["permission"][i]["assignee"] +"</label><br>");
+				$("#div_permission_" + (i+1)).append("<label class=\"unselectable rules_list\">Target:</label>");
+				for (var j = 0; j < p_global[0]["permission"][i]["target"].length; j++) {
+					var offset = 0;
+					if(j > 0)
+						offset = 60;
+					if(p_global[0]["permission"][i]["target"][j].length == 1){
+						$("#div_permission_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: "+ (36 + offset) +"px\">"+ p_global[0]["permission"][i]["target"] +"</label><br>");
+						break;
+					}
+					$("#div_permission_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: "+ (36 + offset) +"px\">"+ p_global[0]["permission"][i]["target"][j] +"</label><br>");
+				}
+				$("#div_permission_" + (i+1)).append("<label class=\"unselectable rules_list\">Action:</label>");
+				$("#div_permission_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: 35px\">"+ p_global[0]["permission"][i]["action"] +"</label><br>");
+				$("#div_permission_" + (i+1)).append("<label class=\"unselectable rules_list\">Purpose:</label>");
+				$("#div_permission_" + (i+1)).append("<label class=\"label_grafic_rules\" style=\"left: 24px\">"+ p_global[0]["permission"][i]["purpose"] +"</label><br>");
+			}
+			$("#div_permission_list").show();
+		}
+		else{
+			$("#div_permission_list").empty();
+			$("#div_permission_list").hide();
+		}
+	}
+}
+
+function change_view_mode(value){
+	if(policy_showed[0]){
+		if(value == "text"){
+			var myJSON_raw = JSON.stringify(policy_showed[1], null, 2);
+			var myJSON = myJSON_raw.replace(/\n/g, "<br>");
+			$("#div_view_scroll").html("<a>"+myJSON+"</a>");
+		}
+		else{
+			policy = [policy_showed[1], ""];
+			open_grafic_view(policy);
+		}
+	}
+}
+
+function open_modify_mode(file_json){
+	$("#div_main").html(string_main_page);
+	$("#div_main").append(string_main_page_2);
+	$("#prefix").prop( "disabled", true );
+	for (var i = 0; i < file_json[0]["@context"].length; i++) {
+		if(file_json[0]["@context"][i].length == 1){
+			$("#context_1").val(file_json[0]["@context"]);
+			break;
+		}
+		if(i == 0)
+			$("#context_" + (i+1)).val(file_json[0]["@context"][i]);
+		else{
+			plus_click('context',1,0);
+			$("#context_" + (i+1)).val(file_json[0]["@context"][i]);
+		}
+	}
+	$("#uid_ext").val(file_json[0]["uid"]);
+	$("#type_ext").val(file_json[0]["@type"]);
+}
