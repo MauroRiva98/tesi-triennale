@@ -58,7 +58,7 @@
     left: 0%;
     top: 1%;
     width: 90%;
-    height: 20%;
+    height: 194px;
 	margin: auto;
 }
 			
@@ -72,7 +72,7 @@
 	position: relative;
 	margin: auto;
 	width: 80%;
-    height: 50%;
+    height: 485px;
 	top: 2%;
 }
 
@@ -690,5 +690,8 @@ a {
 	.label_grafic_rules {
 		margin-top: 8px;
 		left: 10px;
+	}
+	#div_logo {
+		height: 110px;
 	}
 }

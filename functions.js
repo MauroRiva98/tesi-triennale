@@ -452,6 +452,7 @@ function start_download(){
 		else{
 			var policy = get_policy();
 			var myJSON = JSON.stringify(policy, null, 2);
+			myJSON = "[\n" + myJSON + "\n]";
 			var file_name = ($("#file_name").val() + ".jsonld");
 			download(file_name, myJSON);
 		}
@@ -467,6 +468,7 @@ function show_policy(){
 		policy_showed = [true, policy];
 		if($("#view_mode").val() == "text"){
 			var myJSON_raw = JSON.stringify(policy, null, 2);
+			myJSON_raw = "[\n" + myJSON_raw + "\n]";
 			var myJSON = myJSON_raw.replace(/\n/g, "<br>");
 			$("#div_view_scroll").html("<a>"+myJSON+"</a>");
 		}
@@ -724,10 +726,80 @@ function open_modify_mode(file_json){
 		if(i == 0)
 			$("#context_" + (i+1)).val(file_json[0]["@context"][i]);
 		else{
-			plus_click('context',1,0);
+			plus_click('context',i,0);
 			$("#context_" + (i+1)).val(file_json[0]["@context"][i]);
 		}
 	}
 	$("#uid_ext").val(file_json[0]["uid"]);
 	$("#type_ext").val(file_json[0]["@type"]);
+	if(file_json[0]["prohibition"] != undefined){
+		for (var i = 0; i < file_json[0]["prohibition"].length; i++) {
+			if($("#uid_1").val() != "")
+				add_new_rule();
+			$("#rule_type_" + rule_number).val("prohibition");
+			$("#uid_" + rule_number).val(file_json[0]["prohibition"][i]["uid"]);
+			$("#assegnee_" + rule_number).val(file_json[0]["prohibition"][i]["assignee"]);
+			for (var j = 0; j < file_json[0]["prohibition"][i]["target"].length; j++) {
+				if(file_json[0]["prohibition"][i]["target"][j].length == 1){
+					$("#target_" + rule_number + "_1").val(file_json[0]["prohibition"][i]["target"]);
+					break;
+				}
+				if(j == 0)
+					$("#target_" + rule_number + "_" + (j + 1)).val(file_json[0]["prohibition"][i]["target"][j]);
+				else{
+					plus_click('target',j,rule_number);
+					$("#target_" + rule_number + "_" + (j + 1)).val(file_json[0]["prohibition"][i]["target"][j]);
+				}
+			}
+			$("#action_" + rule_number).val(file_json[0]["prohibition"][i]["action"]);
+			$("#purpose_" + rule_number).val(file_json[0]["prohibition"][i]["purpose"]);
+		}
+	}
+	if(file_json[0]["obligation"] != undefined){
+		for (var i = 0; i < file_json[0]["obligation"].length; i++) {
+			if($("#uid_1").val() != "")
+				add_new_rule();
+			$("#rule_type_" + rule_number).val("obligation");
+			$("#uid_" + rule_number).val(file_json[0]["obligation"][i]["uid"]);
+			$("#assegnee_" + rule_number).val(file_json[0]["obligation"][i]["assignee"]);
+			for (var j = 0; j < file_json[0]["obligation"][i]["target"].length; j++) {
+				if(file_json[0]["obligation"][i]["target"][j].length == 1){
+					$("#target_" + rule_number + "_1").val(file_json[0]["obligation"][i]["target"]);
+					break;
+				}
+				if(j == 0)
+					$("#target_" + rule_number + "_" + (j + 1)).val(file_json[0]["obligation"][i]["target"][j]);
+				else{
+					plus_click('target',j,rule_number);
+					$("#target_" + rule_number + "_" + (j + 1)).val(file_json[0]["obligation"][i]["target"][j]);
+				}
+			}
+			$("#action_" + rule_number).val(file_json[0]["obligation"][i]["action"]);
+			$("#purpose_" + rule_number).val(file_json[0]["obligation"][i]["purpose"]);
+		}
+	}
+	if(file_json[0]["permission"] != undefined){
+		for (var i = 0; i < file_json[0]["permission"].length; i++) {
+			if($("#uid_1").val() != "")
+				add_new_rule();
+			$("#rule_type_" + rule_number).val("permission");
+			$("#uid_" + rule_number).val(file_json[0]["permission"][i]["uid"]);
+			$("#assegnee_" + rule_number).val(file_json[0]["permission"][i]["assignee"]);
+			for (var j = 0; j < file_json[0]["permission"][i]["target"].length; j++) {
+				if(file_json[0]["permission"][i]["target"][j].length == 1){
+					$("#target_" + rule_number + "_1").val(file_json[0]["permission"][i]["target"]);
+					break;
+				}
+				if(j == 0)
+					$("#target_" + rule_number + "_" + (j + 1)).val(file_json[0]["permission"][i]["target"][j]);
+				else{
+					plus_click('target',j,rule_number);
+					$("#target_" + rule_number + "_" + (j + 1)).val(file_json[0]["permission"][i]["target"][j]);
+				}
+			}
+			$("#action_" + rule_number).val(file_json[0]["permission"][i]["action"]);
+			$("#purpose_" + rule_number).val(file_json[0]["permission"][i]["purpose"]);
+		}
+	}
+	show_policy();
 }
