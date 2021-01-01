@@ -334,7 +334,7 @@ function check_form(){
 			return valid;
 		}
 	}
-	for (var i = $('div[name ="div_rule"]').length; i > 0; i--) {
+	for (var i = rule_number; i > 0; i--) {
 		if($("#uid_"+i).val() == "" || $("#assegnee_"+i).val() == "" || $("#action_"+i).val() == "" || $("#purpose_"+i).val() == ""){
 			valid = false;
 			return valid;
