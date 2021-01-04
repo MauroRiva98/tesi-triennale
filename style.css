@@ -13,6 +13,7 @@
 	background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+	overflow-y: hidden;
 }
 
 #div_left_menu {
@@ -72,7 +73,7 @@
 	position: relative;
 	margin: auto;
 	width: 80%;
-    height: 485px;
+    height: 250px;
 	top: 2%;
 }
 
@@ -574,6 +575,27 @@ a {
 	font-weight: normal;
 	margin-top: 12px;
 	left: 18px;
+}
+
+@media screen and (max-width: 1400px) {
+	#div_grafic_base {
+		width: 540px;
+	}
+	#div_grafic_prohibition {
+		width: 515px;
+	}
+	#div_grafic_obligation {
+		width: 515px;
+	}
+	#div_grafic_permission {
+		width: 515px;
+	}
+	.div_prohibition, .div_obligation, .div_permission {
+		width: 470px;
+	}
+	#div_top_left, #div_top_right {
+		height: 7%;
+	}
 }
 
 @media screen and (max-width: 1000px) {

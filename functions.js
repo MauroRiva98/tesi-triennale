@@ -134,6 +134,7 @@ function menu_click(option){
 			$("#div_main").empty();
 			$("#div_main").append(string_main_page);
 			$("#div_main").append(string_main_page_2);
+			$("#div_form").css("overflow-y", "auto");
 			policy_showed[0] = false;
 			rule_number = 1;
 		break;
@@ -143,6 +144,7 @@ function menu_click(option){
 		break;
 		case 3: //View
 			open_upload_div("view");
+			$("#div_form").css("overflow-y", "hidden");
 		break;
 	}
 }
