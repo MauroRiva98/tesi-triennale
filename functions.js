@@ -108,6 +108,9 @@ var string_main_page = "<div id=\"div_center\">\
 						<div id=\"div_download_button\" onclick=\"start_download()\">\
 							<label class=\"unselectable\" id=\"label_div_download_button\">Download</label>\
 						</div>\
+                        <div id=\"div_save_button\" onclick=\"start_save()\">\
+							<label class=\"unselectable\" id=\"label_div_save_button\">Save</label>\
+						</div>\
 					  </div>\
 					</form>\
 				</div>";
@@ -140,12 +143,35 @@ function menu_click(option){
 		break;
 		case 2: //Modify
 			rule_number = 1;
+            policy_showed[0] = false;
 			open_upload_div("modify");
 		break;
 		case 3: //View
+        	policy_showed[0] = false;
 			open_upload_div("view");
 			$("#div_form").css("overflow-y", "hidden");
 		break;
+		case 4: //Cloud
+        	policy_showed[0] = false;
+        	$.ajax({url: "ajax/check_login.php", success: function(result){
+        	if(result == "0")
+        		show_alert("ERROR: An account is required to access this feature!");
+            else{
+            	open_cloud_div();
+				$("#div_cloud_main").css("overflow-y", "hidden");
+            }
+        	}});
+		break;
+        case 5: //Login
+        	policy_showed[0] = false;
+        	open_login_div();
+        break;
+        case 6: //Logout
+        	policy_showed[0] = false;
+        	$.ajax({url: "ajax/logout.php", success: function(){
+        		location.reload();
+        	}});
+        break;
 	}
 }
 
@@ -481,7 +507,7 @@ function show_policy(){
 	}
 }
 function open_upload_div(type){
-	$("#div_form").empty();
+	$("#div_center").html("<div id=\"div_form\" style=\"overflow-y: hidden;\"></div>");
 	$("#div_view_main").empty();
 	$("#div_form").html("<div id = \"div_upload\" class=\"unselectable\">\
 		<label for=\"upload\">Upload a file:</label><br><br>\
@@ -506,11 +532,32 @@ function read_file(file){
 		try{
 			var file_json = JSON.parse(result);
 			if($("#div_box").html() == "modify"){
-				open_modify_mode(file_json);
+				open_modify_mode(file_json, "standard", "", 0);
 			}
 			else if($("#div_box").html() == "view"){
 				open_view_mode(file_json);
 			}
+            else if($("#div_box").html() == "cloud"){
+                $.ajax({url: "ajax/get_id_utente.php", success: function(result){
+                  if(result == "0")
+                      show_alert("ERROR: An account is required to access this feature!");
+                  else{
+                      $.post("ajax/insert.php",
+                        {
+                          file_name: file["name"],
+                          id_utente: result,
+                          policy: file_json
+                        },
+                        function(status){
+                        	if(status == "1")
+                            	show_alert("Policy uploaded!");
+                            else
+                        		show_alert(status);
+                        	open_cloud_div()
+                        });
+                  }
+                  }});
+            }
 		}
 		catch(err) {
 			show_alert("ERROR: " + err);
@@ -716,7 +763,7 @@ function change_view_mode(value){
 	}
 }
 
-function open_modify_mode(file_json){
+function open_modify_mode(file_json, mode, file_name, id_policy){
 	$("#div_main").html(string_main_page);
 	$("#div_main").append(string_main_page_2);
 	$("#prefix").prop( "disabled", true );
@@ -803,5 +850,417 @@ function open_modify_mode(file_json){
 			$("#purpose_" + rule_number).val(file_json[0]["permission"][i]["purpose"]);
 		}
 	}
+    if(file_name != ""){
+    	var fn = file_name.replace(".jsonld", "");
+   		$("#file_name").val(fn);
+         $("#div_save_button"). attr("onclick","start_update("+id_policy+")");
+        }
 	show_policy();
+}
+
+function open_cloud_div(){
+	selected = [];
+	$("#div_right").html("<div id=\"div_view_main\">\
+					<div id=\"div_top_right\">\
+						<titolo class=\"unselectable\">VIEW</titolo>\
+						<div id=\"div_select_view_mode\">\
+							<label class=\"unselectable\" id=\"label_select_view_mode\">Select view mode:</label>\
+							<select id=\"view_mode\" onchange=\"change_view_mode(this.value)\">\
+								<option value=\"text\">Text</option>\
+								<option value=\"grafic\">Grafic</option>\
+							</select>\
+						</div>\
+					</div>\
+					<div id=\"div_view_scroll\">"+					
+					"</div>\
+				</div>");
+    $("#div_center").html("<div id=\"div_cloud_main\"></div>");
+    $("#div_cloud_main").html("<div id=\"div_top_cloud\"></div>");
+    $("#div_top_cloud").html("<titolo class=\"unselectable\">CLOUD</titolo>");
+   	$("#div_top_cloud").append("<div id=\"div_upload_cloud_button\" class=\"div_cloud_button\" onclick=\"open_upload_div('cloud')\">\
+							<label class=\"unselectable label_cloud_button\" id=\"label_div_upload_cloud_button\">Upload</label>\
+						</div>");
+    $("#div_top_cloud").append("<div id=\"div_download_cloud_button\" class=\"div_cloud_button\" onclick=\"start_cloud_download()\">\
+							<label class=\"unselectable label_cloud_button\" id=\"label_div_download_cloud_button\">Download</label>\
+						</div>");
+    $("#div_top_cloud").append("<div id=\"div_modify_cloud_button\" class=\"div_cloud_button\" onclick=\"start_cloud_modify()\">\
+							<label class=\"unselectable label_cloud_button\" id=\"label_div_modify_cloud_button\">Modify</label>\
+						</div>");
+    $("#div_top_cloud").append("<div id=\"div_delete_cloud_button\" class=\"div_cloud_button\" onclick=\"start_cloud_delete()\">\
+							<label class=\"unselectable label_cloud_button\" id=\"label_div_delete_cloud_button\">Delete</label>\
+						</div>");
+    $("#div_cloud_main").append("<div id=\"div_cloud_table\"></div>");
+    $("#div_cloud_table").html("<table id=\"cloud_table\">\
+        <tr class=\"unselectable\">\
+          <th style=\"width: 32%\">UID</th>\
+          <th style=\"width: 32%\">File name</th>\
+          <th style=\"width: 32%\">Last modified</th>\
+          <th>X</th>\
+        </tr>\
+      </table>");
+       $.ajax({url: "ajax/get_id_utente.php", success: function(result){
+       		if(result == "0")
+                      show_alert("ERROR: An account is required to access this feature!");
+                  else{
+                      $.post("ajax/open_table.php",
+                        {
+                          id_utente: result
+                        },
+                        function(string){
+                        	if(string == "0")
+                            	show_alert("Error!");
+                            else
+                            	$("#cloud_table").append(string);
+                        });
+                  }          
+       }});
+}
+
+function open_login_div(){
+	$("#div_right").empty();
+    $("#div_form").html("<titolo class=\"unselectable\">LOGIN</titolo>\
+    <form id=\"form_login\" action=\"ajax/login.php\">\
+					  <label class=\"unselectable\" for=\"email\">Email:</label><br>\
+					  <div id=\"div_email\">\
+						<input type=\"email\" id=\"email_login\" class=\"input_login\">\
+					  </div>\
+					  <br>\
+                      <label class=\"unselectable\" for=\"password\">Password:</label><br>\
+					  <div id=\"div_password\">\
+						<input type=\"password\" id=\"password_login\" class=\"input_login\">\
+					  </div>\
+					  <br><br>\
+                      <div id=\"div_login_button\" onclick=\"submit_login(0)\">\
+						<label class=\"unselectable\" id=\"label_div_login_button\">Login</label>\
+					  </div>\
+                      <div id=\"div_registration_login_button\" onclick=\"open_registration(0)\">\
+						<label class=\"unselectable\" id=\"label_div_registration_login_button\">Registration</label>\
+					  </div>\
+    </form>");
+}
+
+function submit_login(over_mode){
+	if($("#email_login").val() != "" && $("#password_login").val() != ""){
+        $.post("ajax/login.php",
+        {
+          email: $("#email_login").val(),
+          password: $("#password_login").val()
+        },
+        function(status){
+          if(status == "0")
+          	show_alert("ERROR: Wrong email or password!");
+          else if(status != "1")
+          	show_alert("ERROR: Login failed!");
+          else{
+          	$.ajax({url: "ajax/get_username.php", success: function(username){
+            	if(!over_mode)
+        			$("#div_form").html("<titolo class=\"unselectable\">WELCOME BACK "+username+"!</titolo>");
+                else{
+                	$("#div_login_over").remove();
+                    $("#div_right_over").remove();
+                }
+        	}});
+            $("#menu_login_logout").attr("onclick","menu_click(6)");
+            $("#menu_login_logout").html("LOGOUT");
+            }
+        });
+    }
+    else
+    	show_alert("ERROR: Insert an email and a password!");
+}
+
+function open_registration(over_mode){
+	var form_id = "#div_form";
+	if(!over_mode)
+		$("#div_right").empty();
+    else
+    	form_id = "#div_form_over";
+    $(form_id).html("<titolo class=\"unselectable\">REGISTRATION</titolo>\
+    <form id=\"form_registration\" action=\"ajax/registration.php\">\
+    				  <label class=\"unselectable\" for=\"username\">Username:</label><br>\
+					  <div id=\"div_username\">\
+						<input type=\"text\" id=\"username_registration\" class=\"input_login\">\
+					  </div>\
+					  <br>\
+					  <label class=\"unselectable\" for=\"email\">Email:</label><br>\
+					  <div id=\"div_email\">\
+						<input type=\"email\" id=\"email_registration\" class=\"input_login\">\
+					  </div>\
+					  <br>\
+                      <label class=\"unselectable\" for=\"password\">Password:</label><br>\
+					  <div id=\"div_password_1\">\
+						<input type=\"password\" id=\"password_registration_1\" class=\"input_login\">\
+					  </div>\
+					  <br>\
+                      <label class=\"unselectable\" for=\"password\">Confirm password:</label><br>\
+					  <div id=\"div_password_2\">\
+						<input type=\"password\" id=\"password_registration_2\" class=\"input_login\">\
+					  </div>\
+					  <br><br>\
+                      <div id=\"div_registration_button\" onclick=\"submit_registration("+over_mode+")\">\
+						<label class=\"unselectable\" id=\"label_div_registration_button\">Submit</label>\
+					  </div>\
+    </form>");
+    if(over_mode)
+    	$("#div_form_over").append("<div id=\"div_button_delete_registration\" name=\"div_button_delete_registration\" class=\"div_button_delete_rule\">\
+								<div onclick=\"delete_login_registration(2)\" id=\"div_img_delete_registration\" name=\"div_img_delete_registration\" class=\"div_img_delete_rule\">\
+									<delete class=\"unselectable\" style=\"cursor: pointer\">X</delete>\
+								</div>\
+							</div>");
+}
+
+function submit_registration(over_mode){
+ 	var user = $("#username_registration").val();
+ 	var email = $("#email_registration").val();
+    var pass1 = $("#password_registration_1").val();
+    var pass2 = $("#password_registration_2").val();
+	if(user == "" || user.includes("<") || user.includes(">") || user.includes("=") || user.includes("!") || user.includes("/") || user.length > 20){
+        	//Errore username
+            show_alert("Error username: \n \n MAX letters: 20, \n \n Forbidden: <  >  =  !  \/ \n \n");
+        }
+    else if(email == "" || (!email.includes("@") && !email.includes(".")) || email.length > 35){
+        	//Errore email
+            show_alert("Error email: \n \n MAX letters: 35, \n \n Invalid format! \n \n");
+        }
+    else if((pass1 == "" || pass2 == "") || (pass1 != pass2) || pass1.length > 30){
+        	//Errore password
+            show_alert("Error password: \n \n MAX letters: 30, \n \n Both password must be identical! \n \n");
+        }
+    else{
+    	  $.post("ajax/registration.php",
+        {
+          username: user,
+          email: email,
+          pass1: pass1,
+          pass2: pass2
+        },
+        function(status){
+          if(status == "1"){
+          	show_alert("Registration completed!");
+            $("#div_login_over").remove();
+            $("#div_right_over").remove();
+            if(!over_mode)
+            	open_login_div();
+            else
+            	open_login_over_div();
+           }
+          else
+          	show_alert(status);
+        });
+    }
+}
+
+function start_save(){
+	if($("#file_name").val() == ""){
+		show_alert("ERROR: Insert a file name!");
+	}
+	else{
+		if(!check_form())
+			show_alert("ERROR: Empty text input!");
+		else{
+			var policy = get_policy();
+			var myJSON = JSON.stringify(policy, null, 2);
+			myJSON = "[\n" + myJSON + "\n]";
+			var file_name = ($("#file_name").val() + ".jsonld");
+            $.ajax({url: "ajax/check_login.php", success: function(result){
+        	if(result == "0")
+        		open_login_over_div();
+            else{
+            	var p = [policy, "buffer"];
+                var file_name = $("#file_name").val() + ".jsonld";
+            	$.ajax({url: "ajax/get_id_utente.php", success: function(result){
+                  if(result == "0")
+                      show_alert("ERROR: An account is required to access this feature!");
+                  else{
+                      $.post("ajax/insert.php",
+                        {
+                          file_name: file_name,
+                          id_utente: result,
+                          policy: p
+                        },
+                        function(status){
+                        	if(status == "1")
+                            	show_alert("Policy saved!");
+                            else
+                        		show_alert(status);
+                        	open_cloud_div()
+                        });
+                  }
+                  }});
+            }
+        	}});
+		}
+	}
+}
+
+function open_login_over_div(){
+	$("#div_main").append("<div id=\"div_login_over\"></div><div id=\"div_right_over\"></div>");
+    $("#div_login_over").html("<div id=\"div_form_over\"></div>");
+    $("#div_form_over").html("<titolo class=\"unselectable\">LOGIN</titolo>\
+    <form id=\"form_login\" action=\"ajax/login.php\">\
+					  <label class=\"unselectable\" for=\"email\">Email:</label><br>\
+					  <div id=\"div_email\">\
+						<input type=\"email\" id=\"email_login\" class=\"input_login\">\
+					  </div>\
+					  <br>\
+                      <label class=\"unselectable\" for=\"password\">Password:</label><br>\
+					  <div id=\"div_password\">\
+						<input type=\"password\" id=\"password_login\" class=\"input_login\">\
+					  </div>\
+					  <br><br>\
+                      <div id=\"div_login_button\" onclick=\"submit_login(1)\">\
+						<label class=\"unselectable\" id=\"label_div_login_button\">Login</label>\
+					  </div>\
+                      <div id=\"div_registration_login_button\" onclick=\"open_registration(1)\">\
+						<label class=\"unselectable\" id=\"label_div_registration_login_button\">Registration</label>\
+					  </div>\
+    </form>");
+    $("#div_form_over").append("<div id=\"div_button_delete_login\" name=\"div_button_delete_login\" class=\"div_button_delete_rule\">\
+								<div onclick=\"delete_login_registration(1)\" id=\"div_img_delete_login\" name=\"div_img_delete_login\" class=\"div_img_delete_rule\">\
+									<delete class=\"unselectable\" style=\"cursor: pointer\">X</delete>\
+								</div>\
+							</div>");
+}
+
+function delete_login_registration(mode){
+	$("#div_login_over").remove();
+    $("#div_right_over").remove();
+    if(mode != 1)
+    	open_login_over_div();
+}
+
+var selected = [];
+function selector_click(id_policy){
+	if(selected.includes(id_policy)){
+    	var index = selected.indexOf(id_policy);
+        selected.splice(index, 1);
+        $("#div_selector_"+id_policy).css("background-color", "white");
+    }
+    else{
+    	selected.push(id_policy);
+        $("#div_selector_"+id_policy).css("background-color", "#000066");
+    }
+}
+
+function show_policy_cloud(id_policy){
+	$.post("ajax/get_policy.php",
+      {
+        id_policy: id_policy
+      },
+      function(result){
+        var policy = result;
+        if(policy["permission"].length == 0)
+			delete policy.permission;
+		if(policy["prohibition"].length == 0)
+			delete policy.prohibition;
+		if(policy["obligation"].length == 0)
+			delete policy.obligation;
+		policy_showed = [true, policy];
+		if($("#view_mode").val() == "text"){
+			var myJSON_raw = JSON.stringify(policy, null, 2);
+			myJSON_raw = "[\n" + myJSON_raw + "\n]";
+			var myJSON = myJSON_raw.replace(/\n/g, "<br>");
+			$("#div_view_scroll").html("<a>"+myJSON+"</a>");
+		}
+		else{
+			policy = [policy, ""];
+			open_grafic_view(policy);
+		}
+      });
+}
+
+function start_cloud_download(){
+	if(selected.length != 1)
+    	show_alert("Error: Select one policy!");
+    else if(selected.length == 1){   
+        var file_name = $("#row_file_name_"+selected[0]).html();
+        $.post("ajax/get_policy.php",
+        {
+        	id_policy: selected[0]
+        },
+        function(result){
+        	var policy = result;
+            if(policy["permission"].length == 0)
+            	delete policy.permission;
+            if(policy["prohibition"].length == 0)
+                delete policy.prohibition;
+            if(policy["obligation"].length == 0)
+                delete policy.obligation;
+            var policy = result;
+            var myJSON = JSON.stringify(policy, null, 2);
+            myJSON = "[\n" + myJSON + "\n]"; 
+            download(file_name, myJSON);  
+            });
+    }
+}
+
+function start_cloud_delete(){
+	if(selected.length < 1)
+    	show_alert("Error: Select at least one policy!");
+    else{
+    	$.post("ajax/delete_policy.php",
+        {
+        	id_policy: selected
+        },
+        function(result){
+        	if(result == "0")
+        		show_alert("Error!");
+            else if(result == "1"){
+            	show_alert("Policy deleted!");
+                menu_click(4);
+                }
+            });
+    }
+}
+
+function start_cloud_modify(){
+	if(selected.length != 1)
+    	show_alert("Error: Select one policy!");
+    else if(selected.length == 1){
+    	rule_number = 1;
+        policy_showed[0] = false;
+        var file_name = $("#row_file_name_"+selected[0]).html();
+    	$.post("ajax/get_policy.php",
+      {
+        id_policy: selected[0]
+      },
+      function(result){
+        var policy = [result, ""];
+        open_modify_mode(policy, "cloud", file_name, selected[0]);
+      });
+    }
+}
+
+function start_update(id_policy){
+	var uid_policy = $("#uid_ext").val();
+    $.post("ajax/check_uid.php",
+      {
+        id_policy: id_policy,
+        uid: uid_policy
+      },
+      function(result){
+        if(result == "0")
+        	show_alert("Error!");
+        else if(result == "-1")
+        	show_alert("Error: Another policy has the same UID!");
+        else if(result == "1"){
+        	var policy = get_policy();
+            policy = [policy, ""];
+            var file_name = $("#file_name").val() + ".jsonld";
+        	$.post("ajax/update_policy.php",
+            {
+              id_policy: id_policy,
+              policy: policy,
+              file_name: file_name
+            },
+            function(r){
+              if(r == "0")
+              	show_alert("Error!");
+              else if(r == "1"){
+              	show_alert("Policy modified successfully!");
+                menu_click(4);
+              }
+            });
+        }
+      });
 }

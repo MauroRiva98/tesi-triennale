@@ -90,7 +90,7 @@ menu:hover {
     color: #303841;
 }
 
-#div_form {
+#div_form, #div_form_over, #div_cloud_main {
 	position: absolute;
 	width: 94%;
 	height: 100%;
@@ -107,7 +107,7 @@ titolo {
 	padding-left: 0px;
 }
 
-#form_create {
+#form_create, #form_login {
 	position: relative;
 	top: 2%;
 }
@@ -362,10 +362,10 @@ delete {
 }
 
 #file_name {
-	width: 50%;
+	width: 70%;
 }
 
-#div_download_button {
+#div_download_button, #div_login_button, #div_registration_button {
 	position: absolute;
 	width: 157px;
     height: 46px;
@@ -374,7 +374,38 @@ delete {
 	margin-top: 10px;
 }
 
-#label_div_download_button {
+.div_cloud_button {
+	position: relative;
+    width: 157px;
+    height: 46px;
+    background-color: #000066;
+    cursor: pointer;
+    margin-top: -44px;
+    margin-left: 100px;
+    z-index: 1;
+}
+
+#div_save_button {
+	position: absolute;
+	width: 157px;
+    height: 46px;
+	background-color: #000066;
+	cursor: pointer;
+	margin-top: 10px;
+    margin-left: 175px;
+}
+
+#div_registration_login_button {
+	position: absolute;
+	width: 157px;
+    height: 46px;
+	background-color: #00b300;
+	cursor: pointer;
+	margin-top: 10px;
+    right: 0px;
+}
+
+#label_div_download_button, #label_div_login_button, #label_div_registration_login_button, #label_div_registration_button, #label_div_save_button, .label_cloud_button {
 	position: relative;
     font-size: 25px;
     color: white;
@@ -395,7 +426,8 @@ delete {
     font-family: 'Oswald', sans-serif;
     font-size: 100%;
     text-align: center;
-    color: black;          
+    color: black;
+    z-index: 100;
 }
 
 .closebtn {
@@ -568,13 +600,125 @@ a {
 	margin-left: 10px;
 }
 
-.label_grafic_rules{
+.label_grafic_rules {
 	position: relative;
 	color: black; 
 	font-size: 17px;
 	font-weight: normal;
 	margin-top: 12px;
 	left: 18px;
+}
+
+.input_login {
+	width: 50%;
+}
+
+#div_login_over {
+	position: absolute;
+    width: 50%;
+    height: 100%;
+    border-style: solid;
+    border-width: 0px 1px 0px 0px;
+    border-color: #737373;
+    z-index: 10;
+    background-color: white;
+}
+
+#div_right_over {
+	position: absolute;
+	width: 50%;
+	height: 101%;
+	left: 50%;
+	border-style: solid;
+	border-width: 0px 0px 0px 1px;
+	border-color: #737373;
+    z-index: 10;
+    background-color: white;
+}
+
+#div_top_cloud {
+	position: absolute;
+	width: 100%;
+	height: 5%;
+	border-style: solid;
+	border-width: 0px 0px 1px 0px;
+	border-color: #737373;
+}
+
+#div_download_cloud_button {
+	left: 175px;
+    top: -2px;
+}
+
+#div_modify_cloud_button {
+	left: 350px;
+    top: -4px;
+}
+
+#div_delete_cloud_button {
+	left: 525px;
+    top: -6px;
+}
+
+#div_cloud_table {
+	position: relative;
+	width: 100%;
+	height: 95%;
+    top: 5%;
+	overflow-y: auto;
+}
+
+#cloud_table {
+	position: relative;
+    width: 100%;
+    top: 10px;
+    table-layout:fixed;
+}
+
+table, th, td {
+   border: 1px solid #737373;
+   border-collapse: collapse;
+}
+
+td {
+	overflow-x: auto;
+    text-align: center;
+}
+
+th {
+	color: #000066;
+    background-color: #d9d9d9;
+}
+
+.div_selector {
+	position: relative;
+    height: 100%;
+    width: 100%;
+    background-color: white;
+    cursor: pointer;
+}
+
+@media screen and (max-width: 1700px) {
+	.div_cloud_button {
+      width: 120px;
+	  height: 45px;
+      margin-top: -46px;
+      margin-left: 85px;
+	}
+    #div_download_cloud_button {
+	  left: 135px;
+      top: 0px;
+	}
+	#div_modify_cloud_button {
+	  left: 270px;
+      top: 1px;
+	}
+	#div_delete_cloud_button {
+	  left: 405px;
+      top: 2px;
+	}
+    #div_cloud_table {
+      top: 7%;
 }
 
 @media screen and (max-width: 1400px) {
@@ -596,6 +740,30 @@ a {
 	#div_top_left, #div_top_right {
 		height: 7%;
 	}
+    #div_top_cloud {
+    	height: 7%;
+    }
+    .div_cloud_button {
+      width: 110px;
+	  height: 45px;
+      margin-top: -46px;
+      margin-left: 82px;
+	}
+    #div_download_cloud_button {
+	  left: 120px;
+      top: 1px;
+	}
+	#div_modify_cloud_button {
+	  left: 240px;
+      top: 2px;
+	}
+	#div_delete_cloud_button {
+	  left: 360px;
+      top: 3px;
+	}
+    #div_cloud_table {
+      top: 7%;
+    }
 }
 
 @media screen and (max-width: 1000px) {
@@ -607,12 +775,12 @@ a {
 	left: 25%;
 	width: 75%;
 	}
-  #div_center {
+  #div_center, #div_login_over {
 	width: 100%;
 	height: 50%;
 	border-width: 0px 0px 1px 0px;
     }
-  #div_right {
+  #div_right, #div_right_over {
 	width: 100%;
 	height: 50%;
 	top: 50%;
@@ -655,17 +823,26 @@ a {
 		width: 70%;
 		height: 25%;
 	}
-	#div_download_button {
+	#div_download_button, #div_login_button, #div_registration_login_button, #div_registration_button {
 		width: 81px;
 		height: 27px;
 		margin-top: 5px;
 	}
-	#label_div_download_button {
+    #div_save_button {
+    	width: 81px;
+		height: 27px;
+		margin-top: 5px;
+        margin-left: 100px;
+    }
+	#label_div_download_button, #label_div_login_button, #label_div_registration_login_button, #label_div_registration_button, #label_div_save_button, .label_cloud_button {
 		font-size: 16px;
 	}
 	#div_top_right {
 		height: 7%;
 	}
+    #div_top_cloud {
+    	height: 14%;
+    }
 	#div_select_view_mode {
 		width: 165px;
 		height: 23px;
@@ -716,4 +893,28 @@ a {
 	#div_logo {
 		height: 110px;
 	}
+    .input_login {
+    	width: 85%;
+    }
+    .div_cloud_button {
+      width: 81px;
+	  height: 27px;
+      margin-top: -28px;
+      margin-left: 55px;
+	}
+    #div_download_cloud_button {
+	  left: 90px;
+      top: 1px;
+	}
+	#div_modify_cloud_button {
+	  left: 0px;
+      top: 33px;
+	}
+	#div_delete_cloud_button {
+	  left: 90px;
+      top: 33px;
+	}
+    #div_cloud_table {
+      top: 14%;
+    }
 }
